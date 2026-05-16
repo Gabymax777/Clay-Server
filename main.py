@@ -13,29 +13,48 @@ def home():
     return "Clay está vivo y respondiendo comandos 24/7"
 
 def run():
-    # Render asignará un puerto automático para Clay
     puerto = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=puerto)
 
-# Arranca la web en un hilo separado
 threading.Thread(target=run, daemon=True).start()
 # ----------------------------------------------
 
-# Configuración de los permisos de Clay
 intents = discord.Intents.default()
-intents.message_content = True  # Obligatorio para leer lo que se escribe
+intents.message_content = True  
 
 bot = commands.Bot(command_prefix="/", intents=intents)
-
-# Obtenemos el token de Clay desde las variables de entorno de su propio servidor
 TOKEN_CLAY = os.environ.get("TOKEN_CLAY")
 
-# --- FUNCIÓN DE CLAY PROTEGIDA POR CANAL ---
+# =========================================================================
+# 📦 BASE DE DATOS DE PROGRAMAS (Añade aquí todos los que quieras fácilmente)
+# =========================================================================
+# Clave: siempre escríbela en MINÚSCULAS.
+# Valor: Un diccionario con el Nombre real y el Enlace de descarga.
+PROGRAMAS = {
+    "aurora_ia": {
+        "nombre": "Aurora IA", 
+        "enlace": "https://tu-enlace-de-descarga.com"
+    },
+    "calculadora": {
+        "nombre": "GX Calculadora", 
+        "enlace": "https://tu-enlace-de-descarga.com"
+    },
+    "bloc_de_notas": {
+        "nombre": "GX Bloc de Notas", 
+        "enlace": "https://tu-enlace-de-descarga.com"
+    },
+    # 💡 Para añadir uno nuevo en el futuro, solo copia y pega esta línea:
+    # "nombre_comando": {"nombre": "Nombre Visible", "enlace": "https://link.com"},
+}
+# =========================================================================
+
+
+# --- FUNCIÓN DE CLAY ULTRA AMPLIABLE ---
 @bot.tree.command(name="descargar", description="Obtén el enlace de descarga de un programa")
 @app_commands.describe(programa="El nombre del programa que quieres descargar")
 async def descargar(interaction: discord.Interaction, programa: str):
-    # CLAVE: Comprobamos si el canal actual empieza por "ticket-"
-    # (Si le cambiaste el nombre en la web de Ticket Tool a "comandos-", pon "comandos-" abajo)
+    
+    # 1. Filtro de seguridad por canal
     if not interaction.channel.name.startswith("ticket-"):
         await interaction.response.send_message(
             "❌ Este comando solo se puede usar dentro de tu canal privado de comandos.", 
@@ -43,24 +62,41 @@ async def descargar(interaction: discord.Interaction, programa: str):
         )
         return
 
-    # Si está en un ticket, el bot sigue con su funcionamiento normal:
-    if programa.lower() == "calculadora":
-        enlace = "https://tu-enlace-de-descarga.com"
-        await interaction.response.send_message(f"Aquí tienes tu enlace para descargar **Calculadora**: {enlace}", ephemeral=True)
+    # 2. Convertimos lo que escribe el usuario a minúsculas y limpiamos espacios o guiones comunes
+    programa_buscado = programa.lower().strip().replace(" ", "_")
+
+    # 3. Buscamos de golpe en nuestro diccionario ultra ampliable
+    if programa_buscado in PROGRAMAS:
+        datos = PROGRAMAS[programa_buscado]
+        nombre_real = datos["nombre"]
+        enlace_real = datos["enlace"]
+        
+        await interaction.response.send_message(
+            f"Aquí tienes tu enlace para descargar **{nombre_real}**: {enlace_real}", 
+            ephemeral=True
+        )
     else:
-        await interaction.response.send_message(f"Lo siento, no tengo el programa '{programa}' en mi base de datos.", ephemeral=True)
+        # Si no lo encuentra, le listamos automáticamente los programas que sí existen
+        lista_disponibles = ", ".join([f"`{p['nombre']}`" for p in PROGRAMAS.values()])
+        await interaction.response.send_message(
+            f"Lo siento, no tengo el programa '{programa}' en mi base de datos.\n"
+            f"📋 **Programas disponibles:** {lista_disponibles}", 
+            ephemeral=True
+        )
 
 
 @bot.event
 async def on_ready():
-    # CLAVE: Haz clic derecho en el icono de tu servidor en Discord y dale a "Copiar ID"
-    # Reemplaza el número de abajo por la ID real de tu servidor
     id_mi_servidor = 1479175423764987914 
 
     try:
-        # Esto inyecta el comando /descargar directamente en tu servidor de golpe
         bot.tree.copy_global_to(guild=discord.Object(id=id_mi_servidor))
         await bot.tree.sync(guild=discord.Object(id=id_mi_servidor))
         print(f"🚀 ¡Éxito! Comandos de Clay sincronizados al instante en el servidor {id_mi_servidor}.")
     except Exception as e:
         print(f"Hubo un error al sincronizar: {e}")
+
+if TOKEN_CLAY:
+    bot.run(TOKEN_CLAY)
+else:
+    print("Error crítico: No se encontró la variable TOKEN_CLAY.")
