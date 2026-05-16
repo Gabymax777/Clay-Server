@@ -23,14 +23,14 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="/", intents=intents)
 TOKEN_CLAY = os.environ.get("TOKEN_CLAY")
 
-# 1. LA BASE DE DATOS DEBE ESTAR ARRIBA DEL COMANDO
+# 1. BASE DE DATOS DE PROGRAMAS
 PROGRAMAS = {
     "calculadora": {"nombre": "GX Calculadora", "enlace": "https://tu-enlace-de-descarga.com"},
     "bloc_de_notas": {"nombre": "GX Bloc de Notas", "enlace": "https://tu-enlace-de-descarga.com"},
     "aurora_ia": {"nombre": "Aurora IA", "enlace": "https://tu-enlace-de-descarga.com"}
 }
 
-# 2. LA FUNCIÓN DE AUTOCOMPLETADO
+# 2. FUNCIÓN DE AUTOCOMPLETADO
 async def programa_autocomplete(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
     choices = [
         app_commands.Choice(name=prog["nombre"], value=id_prog)
@@ -38,11 +38,11 @@ async def programa_autocomplete(interaction: discord.Interaction, current: str) 
     ]
     return [choice for choice in choices if current.lower() in choice.name.lower()][:25]
 
-# --- EL COMANDO CORREGIDO CON EL MISMO NOMBRE DE PARÁMETRO ---
+# 3. COMANDO DE DESCARGA
 @bot.tree.command(name="descargar", description="Obtén el enlace de descarga de un programa")
-@app_commands.describe(programa="El nombre del programa que quieres descargar") # <-- Aquí dice 'programa'
+@app_commands.describe(programa="El nombre del programa que quieres descargar")
 @app_commands.autocomplete(programa=programa_autocomplete)
-async def descargar(interaction: discord.Interaction, programa: str): # <-- ¡AQUÍ YA DICE 'programa'!
+async def descargar(interaction: discord.Interaction, programa: str):
     
     if not interaction.channel.name.startswith("ticket-"):
         await interaction.response.send_message(
@@ -51,7 +51,6 @@ async def descargar(interaction: discord.Interaction, programa: str): # <-- ¡AQ
         )
         return
 
-    # Limpiamos el texto que llegue
     programa_buscado = programa.lower().strip().replace(" ", "_")
 
     if programa_buscado in PROGRAMAS:
@@ -67,20 +66,18 @@ async def descargar(interaction: discord.Interaction, programa: str): # <-- ¡AQ
             ephemeral=True
         )
 
+# 4. INICIO DEL BOT SEGURO Y RÁPIDO
 @bot.event
 async def on_ready():
-    id_mi_servidor = 1479175423764987914 
+    id_mi_servidor = 1479175423764987914
 
     try:
-        # 1. ESTA LÍNEA BORRA TODOS LOS COMANDOS GLOBALES VIEJOS DE LA NUBE
-        bot.tree.clear_commands(guild=None)
-        await bot.tree.sync(guild=None)
-        
-        # 2. Volvemos a inyectar el comando correcto solo en tu servidor
+        # Quitamos la limpieza global pesada y dejamos solo la carga directa en tu servidor
         bot.tree.copy_global_to(guild=discord.Object(id=id_mi_servidor))
         await bot.tree.sync(guild=discord.Object(id=id_mi_servidor))
-        
-        print(f"🚀 ¡Limpieza completada! Comandos duplicados eliminados.")
+        print(f"🚀 ¡Éxito! Clay conectado y sincronizado correctamente en el servidor {id_mi_servidor}.")
     except Exception as e:
         print(f"Hubo un error al sincronizar: {e}")
 
+if TOKEN_CLAY:
+    bot.run(TOKEN_CLAY)
