@@ -38,11 +38,11 @@ async def programa_autocomplete(interaction: discord.Interaction, current: str) 
     ]
     return [choice for choice in choices if current.lower() in choice.name.lower()][:25]
 
-# 3. EL COMANDO CON EL AUTOCOMPLETE ASOCIADO
+# --- EL COMANDO CORREGIDO CON EL MISMO NOMBRE DE PARÁMETRO ---
 @bot.tree.command(name="descargar", description="Obtén el enlace de descarga de un programa")
-@app_commands.describe(programa="El nombre del programa que quieres descargar")
+@app_commands.describe(programa="El nombre del programa que quieres descargar") # <-- Aquí dice 'programa'
 @app_commands.autocomplete(programa=programa_autocomplete)
-async def descargar(interaction: discord.Interaction, programme: str):
+async def descargar(interaction: discord.Interaction, programa: str): # <-- ¡AQUÍ YA DICE 'programa'!
     
     if not interaction.channel.name.startswith("ticket-"):
         await interaction.response.send_message(
@@ -52,7 +52,7 @@ async def descargar(interaction: discord.Interaction, programme: str):
         return
 
     # Limpiamos el texto que llegue
-    programa_buscado = programme.lower().strip().replace(" ", "_")
+    programa_buscado = programa.lower().strip().replace(" ", "_")
 
     if programa_buscado in PROGRAMAS:
         datos = PROGRAMAS[programa_buscado]
@@ -63,7 +63,7 @@ async def descargar(interaction: discord.Interaction, programme: str):
     else:
         lista_visibles = ", ".join([f"`{p['nombre']}`" for p in PROGRAMAS.values()])
         await interaction.response.send_message(
-            f"❌ No encontré el programa '{programme}'.\n📋 **Programas:** {lista_visibles}", 
+            f"❌ No encontré el programa '{programa}'.\n📋 **Programas:** {lista_visibles}", 
             ephemeral=True
         )
 
