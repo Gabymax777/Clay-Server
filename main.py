@@ -44,11 +44,14 @@ async def descargar(interaction: discord.Interaction, programa: str):
 
 @bot.event
 async def on_ready():
-    # Sincroniza el comando /descargar con Discord al encenderse
-    await bot.tree.sync()
-    print(f"🤖 Clay conectado 24/7. Listo para comandos en los canales privados.")
+    # CLAVE: Haz clic derecho en el icono de tu servidor en Discord y dale a "Copiar ID"
+    # Reemplaza el número de abajo por la ID real de tu servidor
+    id_mi_servidor = 1479175423764987914 
 
-if TOKEN_CLAY:
-    bot.run(TOKEN_CLAY)
-else:
-    print("Error crítico: No se encontró la variable TOKEN_CLAY.")
+    try:
+        # Esto inyecta el comando /descargar directamente en tu servidor de golpe
+        bot.tree.copy_global_to(guild=discord.Object(id=id_mi_servidor))
+        await bot.tree.sync(guild=discord.Object(id=id_mi_servidor))
+        print(f"🚀 ¡Éxito! Comandos de Clay sincronizados al instante en el servidor {id_mi_servidor}.")
+    except Exception as e:
+        print(f"Hubo un error al sincronizar: {e}")
