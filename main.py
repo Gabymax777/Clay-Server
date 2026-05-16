@@ -25,8 +25,8 @@ TOKEN_CLAY = os.environ.get("TOKEN_CLAY")
 
 # 1. LA BASE DE DATOS DEBE ESTAR ARRIBA DEL COMANDO
 PROGRAMAS = {
-    "calculadora": {"nombre": "Calculadora Pro", "enlace": "https://tu-enlace-de-descarga.com"},
-    "bloc_de_notas": {"nombre": "Bloc de Notas Avanzado", "enlace": "https://tu-enlace-de-descarga.com"},
+    "calculadora": {"nombre": "GX Calculadora", "enlace": "https://tu-enlace-de-descarga.com"},
+    "bloc_de_notas": {"nombre": "GX Bloc de Notas", "enlace": "https://tu-enlace-de-descarga.com"},
     "aurora_ia": {"nombre": "Aurora IA", "enlace": "https://tu-enlace-de-descarga.com"}
 }
 
