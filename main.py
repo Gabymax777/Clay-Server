@@ -26,32 +26,43 @@ bot = commands.Bot(command_prefix="/", intents=intents)
 TOKEN_CLAY = os.environ.get("TOKEN_CLAY")
 
 # =========================================================================
-# 📦 BASE DE DATOS DE PROGRAMAS (Añade aquí todos los que quieras fácilmente)
+# 📦 BASE DE DATOS DE PROGRAMAS
 # =========================================================================
-# Clave: siempre escríbela en MINÚSCULAS.
-# Valor: Un diccionario con el Nombre real y el Enlace de descarga.
 PROGRAMAS = {
-    "aurora_ia": {
-        "nombre": "Aurora IA", 
-        "enlace": "https://tu-enlace-de-descarga.com"
-    },
     "calculadora": {
-        "nombre": "GX Calculadora", 
+        "nombre": "Calculadora Pro", 
         "enlace": "https://tu-enlace-de-descarga.com"
     },
     "bloc_de_notas": {
-        "nombre": "GX Bloc de Notas", 
+        "nombre": "Bloc de Notas Avanzado", 
         "enlace": "https://tu-enlace-de-descarga.com"
     },
-    # 💡 Para añadir uno nuevo en el futuro, solo copia y pega esta línea:
-    # "nombre_comando": {"nombre": "Nombre Visible", "enlace": "https://link.com"},
+    "aurora_ia": {
+        "nombre": "Aurora IA", 
+        "enlace": "https://tu-enlace-de-descarga.com"
+    }
 }
 # =========================================================================
 
+# ✨ FUNCIÓN DE AUTOCOMPLETADO (Muestra la lista al usuario mientras escribe)
+async def programa_autocomplete(
+    interaction: discord.Interaction,
+    current: str,
+) -> list[app_commands.Choice[str]]:
+    choices = [
+        app_commands.Choice(name=prog["nombre"], value=id_prog)
+        for id_prog, prog in PROGRAMAS.items()
+    ]
+    # Filtra las opciones según lo que va escribiendo el usuario
+    return [
+        choice for choice in choices if current.lower() in choice.name.lower()
+    ][:25]
 
-# --- FUNCIÓN DE CLAY ULTRA AMPLIABLE ---
+
+# --- FUNCIÓN DE CLAY MEJORADA ---
 @bot.tree.command(name="descargar", description="Obtén el enlace de descarga de un programa")
 @app_commands.describe(programa="El nombre del programa que quieres descargar")
+@app_commands.autocomplete(programa=programa_autocomplete) # <-- Conectamos el autocompletado
 async def descargar(interaction: discord.Interaction, programa: str):
     
     # 1. Filtro de seguridad por canal
@@ -62,25 +73,22 @@ async def descargar(interaction: discord.Interaction, programa: str):
         )
         return
 
-    # 2. Convertimos lo que escribe el usuario a minúsculas y limpiamos espacios o guiones comunes
+    # 2. Normalizamos la entrada (reemplazamos espacios por guiones bajos)
     programa_buscado = programa.lower().strip().replace(" ", "_")
 
-    # 3. Buscamos de golpe en nuestro diccionario ultra ampliable
+    # 3. Búsqueda directa
     if programa_buscado in PROGRAMAS:
         datos = PROGRAMAS[programa_buscado]
-        nombre_real = datos["nombre"]
-        enlace_real = datos["enlace"]
-        
         await interaction.response.send_message(
-            f"Aquí tienes tu enlace para descargar **{nombre_real}**: {enlace_real}", 
+            f"Aquí tienes tu enlace para descargar **{datos['nombre']}**: {datos['enlace']}", 
             ephemeral=True
         )
     else:
-        # Si no lo encuentra, le listamos automáticamente los programas que sí existen
-        lista_disponibles = ", ".join([f"`{p['nombre']}`" for p in PROGRAMAS.values()])
+        # Copia de seguridad por si escriben algo que no está en la lista
+        lista_visibles = ", ".join([f"`{p['nombre']}`" for p in PROGRAMAS.values()])
         await interaction.response.send_message(
-            f"Lo siento, no tengo el programa '{programa}' en mi base de datos.\n"
-            f"📋 **Programas disponibles:** {lista_disponibles}", 
+            f"❌ No encontré el programa '{programa}'.\n"
+            f"📋 **Programas en el sistema:** {lista_visibles}", 
             ephemeral=True
         )
 
