@@ -70,13 +70,17 @@ async def descargar(interaction: discord.Interaction, programa: str): # <-- ¡AQ
 @bot.event
 async def on_ready():
     id_mi_servidor = 1479175423764987914 
+
     try:
-        # Volvemos a limpiar e inyectar el árbol de comandos completo en tu servidor
+        # 1. ESTA LÍNEA BORRA TODOS LOS COMANDOS GLOBALES VIEJOS DE LA NUBE
+        bot.tree.clear_commands(guild=None)
+        await bot.tree.sync(guild=None)
+        
+        # 2. Volvemos a inyectar el comando correcto solo en tu servidor
         bot.tree.copy_global_to(guild=discord.Object(id=id_mi_servidor))
         await bot.tree.sync(guild=discord.Object(id=id_mi_servidor))
-        print(f"🚀 ¡Éxito! Comandos con autocompletado cargados en el servidor {id_mi_servidor}.")
+        
+        print(f"🚀 ¡Limpieza completada! Comandos duplicados eliminados.")
     except Exception as e:
         print(f"Hubo un error al sincronizar: {e}")
 
-if TOKEN_CLAY:
-    bot.run(TOKEN_CLAY)
