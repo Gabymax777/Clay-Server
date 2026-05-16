@@ -20,7 +20,7 @@ threading.Thread(target=run, daemon=True).start()
 intents = discord.Intents.default()
 intents.message_content = True  
 
-bot = commands.Bot(command_prefix="/", intents=intents)
+bot = commands.Bot(command_prefix=".", intents=intents)
 TOKEN_CLAY = os.environ.get("TOKEN_CLAY")
 
 # 📌 RECUERDA CAMBIAR ESTA ID POR LA DE TU CANAL DE TEXTO DONDE QUIERES QUE TE LLEGUEN LAS SUGERENCIAS
@@ -143,10 +143,8 @@ async def help_command(interaction: discord.Interaction):
 # =========================================================================
 @bot.event
 async def on_ready():
-    id_mi_servidor = 1479175423764987914 
     try:
-        bot.tree.copy_global_to(guild=discord.Object(id=id_mi_servidor))
-        await bot.tree.sync(guild=discord.Object(id=id_mi_servidor))
+        await bot.tree.sync()
         print(f"🚀 ¡Éxito! Todos los comandos de Clay se han cargado en el servidor {id_mi_servidor}.")
     except Exception as e:
         print(f"Hubo un error al sincronizar: {e}")
