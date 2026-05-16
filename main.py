@@ -30,17 +30,26 @@ bot = commands.Bot(command_prefix="/", intents=intents)
 # Obtenemos el token de Clay desde las variables de entorno de su propio servidor
 TOKEN_CLAY = os.environ.get("TOKEN_CLAY")
 
-# --- ÚNICA FUNCIÓN DE CLAY: COMANDO /DESCARGAR ---
+# --- FUNCIÓN DE CLAY PROTEGIDA POR CANAL ---
 @bot.tree.command(name="descargar", description="Obtén el enlace de descarga de un programa")
 @app_commands.describe(programa="El nombre del programa que quieres descargar")
 async def descargar(interaction: discord.Interaction, programa: str):
-    # Pasamos el nombre a minúsculas para evitar fallos por mayúsculas
+    # CLAVE: Comprobamos si el canal actual empieza por "ticket-"
+    # (Si le cambiaste el nombre en la web de Ticket Tool a "comandos-", pon "comandos-" abajo)
+    if not interaction.channel.name.startswith("ticket-"):
+        await interaction.response.send_message(
+            "❌ Este comando solo se puede usar dentro de tu canal privado de comandos.", 
+            ephemeral=True
+        )
+        return
+
+    # Si está en un ticket, el bot sigue con su funcionamiento normal:
     if programa.lower() == "calculadora":
-        enlace = "https://tu-enlace-de-descarga.com" # <-- Cambia esto por tu link real
-        # 'ephemeral=True' hace que solo el usuario que ejecutó el comando vea la respuesta
+        enlace = "https://tu-enlace-de-descarga.com"
         await interaction.response.send_message(f"Aquí tienes tu enlace para descargar **Calculadora**: {enlace}", ephemeral=True)
     else:
         await interaction.response.send_message(f"Lo siento, no tengo el programa '{programa}' en mi base de datos.", ephemeral=True)
+
 
 @bot.event
 async def on_ready():
