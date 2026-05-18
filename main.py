@@ -23,14 +23,42 @@ intents.message_content = True
 bot = commands.Bot(command_prefix=".", intents=intents)
 TOKEN_CLAY = os.environ.get("TOKEN_CLAY")
 
-# 📌 RECUERDA CAMBIAR ESTA ID POR LA DE TU CANAL DE TEXTO DONDE QUIERES QUE TE LLEGUEN LAS SUGERENCIAS
 ID_CANAL_SUGERENCIAS = 1505170785772503160  
 
 # 📦 BASE DE DATOS DE PROGRAMAS
 PROGRAMAS = {
-    "calculadora": {"nombre": "GX Calculadora", "enlace": "https://tu-enlace-de-descarga.com"},
-    "bloc_de_notas": {"nombre": "GX Bloc de Notas", "enlace": "https://tu-enlace-de-descarga.com"},
-    "aurora_ia": {"nombre": "Aurora IA", "enlace": "https://tu-enlace-de-descarga.com"}
+    "calculadora": {
+        "nombre": "GX Calculadora", 
+        "enlace": "https://tu-enlace-de-descarga.com",
+        "mensaje": "Aquí tienes tu enlace para descargar **GX Calculadora**:"
+    },
+    "bloc_de_notas": {
+        "nombre": "GX Bloc de Notas", 
+        "enlace": "https://tu-enlace-de-descarga.com",
+        "mensaje": "📝 ¡No olvides ninguna idea! Descarga tu **GX Bloc de Notas** aquí:"
+    },
+    "aurora_ia": {
+        "nombre": "Aurora IA", 
+        "enlace": { 
+            "AMD": "https://tu-enlace-de-descarga.com",
+            "NVIDIA CUDA V12": "https://tu-enlace-de-descarga.com",
+            "NVIDIA CUDA V13": "https://tu-enlace-de-descarga.com"
+        }, 
+        "mensaje": (
+            "Antes de descargar este programa, debes verificar si tu tarjeta gráfica es AMD o es NVIDIA. "
+            "En caso de ser AMD, pulsa en el enlace de descarga de AMD.\n\n"
+            "Para los usuarios de NVIDIA, debéis verificar la versión CUDA de la misma. Para ello, ejecutad el "
+            "símbolo del sistema con permisos de administrador y poned el siguiente comando: `nvidia-smi`\n\n"
+            "La terminal responderá con una tabla muy grande. Arriba del todo veréis algo así:\n"
+            "```\n"
+            "+-----------------------------------------------------------------------------------------+\n"
+            "| NVIDIA-SMI X                      Driver Version: X              CUDA Version: X        |\n"
+            "+-----------------------------------------+------------------------+----------------------+\n"
+            "```\n"
+            "Si la CUDA version es 12.algo, pulsad en el enlace de **NVIDIA CUDA V12**. Si es 13.0 o superior, "
+            "pulsad en el enlace **NVIDIA CUDA V13**. ¡Disfrutad!\n"
+        ) 
+    }
 }
 
 async def programme_autocomplete(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
@@ -41,9 +69,6 @@ async def programme_autocomplete(interaction: discord.Interaction, current: str)
     return [choice for choice in choices if current.lower() in choice.name.lower()][:25]
 
 
-# =========================================================================
-# 🛡️ FUNCIÓN DE COMPROBACIÓN DE CANAL (Para evitar repetir código)
-# =========================================================================
 async def comprobar_canal_privado(interaction: discord.Interaction) -> bool:
     if not interaction.channel.name.startswith("ticket-"):
         await interaction.response.send_message(
@@ -55,7 +80,7 @@ async def comprobar_canal_privado(interaction: discord.Interaction) -> bool:
 
 
 # =========================================================================
-# 📥 1. COMANDO: /descargar
+# 📥 1. COMANDO: /descargar (Adaptado para enlaces múltiples o simples)
 # =========================================================================
 @bot.tree.command(name="descargar", description="Obtén el enlace de descarga de un programa")
 @app_commands.describe(programa="El nombre del programa que quieres descargar")
@@ -67,7 +92,18 @@ async def descargar(interaction: discord.Interaction, programa: str):
 
     if programa_buscado in PROGRAMAS:
         datos = PROGRAMAS[programa_buscado]
-        await interaction.response.send_message(f"Aquí tienes tu enlace para descargar **{datos['nombre']}**: {datos['enlace']}", ephemeral=True)
+        mensaje_final = datos['mensaje']
+        
+        # 🔍 Si "enlace" es un diccionario, recorre las opciones y las añade abajo
+        if isinstance(datos['enlace'], dict):
+            links_formateados = ""
+            for version, url in datos['enlace'].items():
+                links_formateados += f"🔗 **{version}**: {url}\n"
+            
+            await interaction.response.send_message(f"{mensaje_final}\n{links_formateados}", ephemeral=True)
+        else:
+            # Si es un enlace de texto normal
+            await interaction.response.send_message(f"{mensaje_final} {datos['enlace']}", ephemeral=True)
     else:
         lista_visibles = ", ".join([f"`{p['nombre']}`" for p in PROGRAMAS.values()])
         await interaction.response.send_message(f"❌ No encontré el programa '{programa}'.\n📋 **Programas:** {lista_visibles}", ephemeral=True)
@@ -110,7 +146,6 @@ async def info(interaction: discord.Interaction):
         description="Aquí tienes acceso directo a todos nuestros sitios oficiales:",
         color=discord.Color.from_rgb(58, 110, 165)
     )
-    # Cambia los enlaces de ejemplo de abajo por tus links reales
     embed.add_field(name="📜 Normas del Server", value="[Ver Normas](https://tu-link.com)", inline=True)
     embed.add_field(name="📱 Redes Sociales", value="[Nuestro TikTok](https://tiktok.com)", inline=True)
     embed.set_thumbnail(url=interaction.guild.icon.url if interaction.guild.icon else None)
@@ -145,7 +180,7 @@ async def help_command(interaction: discord.Interaction):
 async def on_ready():
     try:
         await bot.tree.sync()
-        print(f"🚀 ¡Éxito! Todos los comandos de Clay se han cargado en el servidor {id_mi_servidor}.")
+        print("🚀 ¡Éxito! Todos los comandos de Clay se han cargado en el servidor.")
     except Exception as e:
         print(f"Hubo un error al sincronizar: {e}")
 
